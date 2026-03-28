@@ -1,0 +1,66 @@
+[
+    {
+        "model": "dashboard.appliance",
+        "pk": 1,
+        "fields": {
+            "name": "Refrigerator",
+            "power_rating": 150
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 2,
+        "fields": {
+            "name": "Washing Machine",
+            "power_rating": 500
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 3,
+        "fields": {
+            "name": "Air Conditioner",
+            "power_rating": 2000
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 4,
+        "fields": {
+            "name": "Electric Oven",
+            "power_rating": 2000
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 5,
+        "fields": {
+            "name": "Television",
+            "power_rating": 100
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 6,
+        "fields": {
+            "name": "Microwave",
+            "power_rating": 1200
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 7,
+        "fields": {
+            "name": "Dishwasher",
+            "power_rating": 1500
+        }
+    },
+    {
+        "model": "dashboard.appliance",
+        "pk": 8,
+        "fields": {
+            "name": "Electric Kettle",
+            "power_rating": 1500
+        }
+    }
+]

@@ -1,0 +1,224 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}
+    {% if is_profile_created %}Edit{% else %}Add{% endif %}
+    Profile - Household Electricity Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'dashboard:index' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'dashboard:resident_profiles' %}">Profiles</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if is_profile_created %}Edit{% else %}Add{% endif %} Profile
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-{% if is_profile_created %}edit{% else %}plus{% endif %}"></i>
+                        {% if is_profile_created %}Edit Profile{% else %}Create New Profile{% endif %}
+                    </h3>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- FORM COLUMN -->
+                        <div class="col-md-8">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-tag"></i> Profile Name *
+                                        </label>
+                                        {{ form.profile_name }}
+                                        {% if form.profile_name.errors %}
+                                            <div class="text-danger">{{ form.profile_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-user"></i> Full Name *
+                                        </label>
+                                        {{ form.full_name }}
+                                        {% if form.full_name.errors %}
+                                            <div class="text-danger">{{ form.full_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-envelope"></i> Email *
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="text-danger">{{ form.email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-lock"></i> Email Password
+                                        </label>
+                                        {{ form.email_password }}
+                                        {% if form.email_password.errors %}
+                                            <div class="text-danger">{{ form.email_password.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-phone"></i> Phone
+                                        </label>
+                                        {{ form.phone }}
+                                        {% if form.phone.errors %}
+                                            <div class="text-danger">{{ form.phone.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-users"></i> Household Size
+                                        </label>
+                                        {{ form.household_size }}
+                                        {% if form.household_size.errors %}
+                                            <div class="text-danger">{{ form.household_size.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i> Address
+                                    </label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="text-danger">{{ form.address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    {{ form.is_default }}
+                                    <label class="form-check-label">
+                                        <i class="fas fa-star"></i> Set as Default Profile
+                                    </label>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i>
+                                        {% if is_profile_created %}Update{% else %}Create{% endif %} Profile
+                                    </button>
+                                    <a href="{% url 'dashboard:resident_profiles' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </a>
+
+                                    {% if is_profile_created and not resident.is_default %}
+                                        <button id="delete-profile-btn" data-delete-url="{% url 'dashboard:delete_resident_profile' resident.id %}" class="btn btn-danger ms-2">
+                                            <i class="fas fa-trash"></i> Delete Profile
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </form>
+
+                            {% if is_profile_created and not resident.is_default %}
+                            <script>
+                                (function(){
+                                    const btn = document.getElementById('delete-profile-btn');
+                                    if (!btn) return;
+                                    btn.addEventListener('click', function(){
+                                        if (!confirm('Delete this profile?')) return;
+                                        const url = btn.dataset.deleteUrl;
+
+                                        // Fetch CSRF token from cookie
+                                        function getCookie(name){
+                                            const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+                                            return v ? v.pop() : '';
+                                        }
+
+                                        fetch(url, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRFToken': getCookie('csrftoken'),
+                                                'Accept': 'application/json',
+                                            },
+                                            body: ''
+                                        }).then(resp => {
+                                            if (resp.ok) {
+                                                window.location.href = "{% url 'dashboard:resident_profiles' %}";
+                                            } else {
+                                                resp.text().then(t => alert('Delete failed: ' + t));
+                                            }
+                                        }).catch(err => alert('Delete failed: ' + err));
+                                    });
+                                })();
+                            </script>
+                            {% endif %}
+                        </div>
+
+                        <!-- SIDE PANEL -->
+                        {% if resident %}
+                        <div class="col-md-4">
+                            <h4>Current Profile</h4>
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h5>{{ resident.full_name }}</h5>
+                                    <p><strong>Email:</strong> {{ resident.email }}</p>
+                                    <p><strong>Phone:</strong> {{ resident.phone|default:"Not provided" }}</p>
+                                    <p><strong>Household Size:</strong> {{ resident.household_size }}</p>
+                                    <p><strong>Address:</strong> {{ resident.address|default:"Not provided"|linebreaks }}</p>
+                                    <p><strong>Member since:</strong> {{ resident.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            {% if monthly_usage %}
+                            <h4>Current Month Usage</h4>
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <p><strong>{{ monthly_usage.month_name }} {{ monthly_usage.year }}</strong></p>
+                                    <p>{{ monthly_usage.total_energy }} kWh</p>
+                                    <p>MUR {{ monthly_usage.total_cost }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,437 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Usage Charts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Chart Title and Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    Electricity Usage Charts
+                </h1>
+                <!-- Period Selection Dropdown -->
+                <div class="btn-group" role="group" aria-label="Chart period selection">
+                    <a href="{% url 'dashboard:charts' %}{% if selected_profile %}?profile={{ selected_profile }}{% endif %}{% if selected_profile %}&{% else %}?{% endif %}period=week" 
+                       class="btn btn-outline-primary {% if chart_period == 'week' %}active{% endif %}">
+                        Weekly
+                    </a>
+                    <a href="{% url 'dashboard:charts' %}{% if selected_profile %}?profile={{ selected_profile }}{% endif %}{% if selected_profile %}&{% else %}?{% endif %}period=month" 
+                       class="btn btn-outline-primary {% if chart_period == 'month' %}active{% endif %}">
+                        Monthly
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chart - Optimized Height -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container" style="position: relative; height: 60vh; width: 100%;">
+                <canvas id="usageChart" style="width: 100%; height: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Details -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card" style="background: var(--bg-primary); border: 2px solid var(--border-color); color: #ffffff;">
+                <div class="card-header" style="background: var(--bg-secondary); border-color: var(--border-color); color: #ffffff;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Chart Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 style="color: #ffffff;"><i class="fas fa-calendar-alt text-info me-2"></i>Current Period</h6>
+                            <p class="mb-2" style="color: #ffffff;"><strong>View:</strong> {{ chart_period|title }}</p>
+                            <p class="mb-0" style="color: #ffffff;"><strong>Chart Type:</strong> Line Graph - Time-based trend analysis</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 style="color: #ffffff;"><i class="fas fa-chart-pie text-warning me-2"></i>Appliance Distribution</h6>
+                            <p class="mb-2" style="color: #ffffff;"><strong>View:</strong> Energy consumption by appliance</p>
+                            <p class="mb-0" style="color: #ffffff;"><strong>Chart Type:</strong> Pie Chart - Percentage distribution</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimized Pie Chart -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                <canvas id="usagePieChart" style="width: 100%; height: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Optimized Chart Enhancements */
+    .chart-container {
+        position: relative;
+        padding: 15px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+    }
+
+    /* Optimized Button Styling */
+    .btn-outline-primary {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-1px);
+        background: var(--bg-tertiary);
+        border-color: var(--primary-color);
+    }
+
+    .btn-outline-primary.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #000000;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">
+/* global Chart */
+document.addEventListener('DOMContentLoaded', function () {
+    try {
+        function safeParse(jsonStr) {
+            if (!jsonStr || typeof jsonStr !== 'string' || jsonStr.trim() === '') {
+                return [];
+            }
+            try {
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        const labels = safeParse('{{ labels_json|escapejs }}');
+        const energySeries = safeParse('{{ energy_series_json|escapejs }}');
+
+        // Optimized Energy Chart
+        const energyCanvas = document.getElementById('usageChart');
+        if (energyCanvas && labels && labels.length > 0) {
+            const primaryColor = '#2563eb';
+            const gradientColor = 'rgba(37, 99, 235, 0.1)';
+            
+            const ctx = energyCanvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, gradientColor);
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+            new Chart(energyCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Energy Consumption (kWh)',
+                        data: energySeries,
+                        borderColor: primaryColor,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: primaryColor,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 800,
+                        easing: 'easeInOut'
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                lineWidth: 1,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' kWh';
+                                },
+                                font: {
+                                    size: 11,
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#6b7280'
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Energy Consumption (kWh)',
+                                font: {
+                                    size: 12,
+                                    weight: '600',
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#374151'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11,
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#6b7280'
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Time Period',
+                                font: {
+                                    size: 12,
+                                    weight: '600',
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#374151'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            display: true, 
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                font: {
+                                    size: 11,
+                                    weight: '600',
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#374151',
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(37, 99, 235, 0.2)',
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(ctx) {
+                                    return `Energy: ${ctx.parsed.y.toFixed(2)} kWh`;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '{{ chart_title }}',
+                            font: {
+                                size: 16,
+                                weight: '700',
+                                family: 'Inter, sans-serif'
+                            },
+                            color: '#111827',
+                            padding: {
+                                top: 8,
+                                bottom: 15
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#ffffff',
+                            hoverBorderColor: primaryColor,
+                            hoverBorderWidth: 3
+                        }
+                    }
+                }
+            });
+        } else if (energyCanvas) {
+            energyCanvas.parentElement.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-chart-line fa-2x mb-2"></i><br><strong>No measurement data available</strong><br><small>Please select a different time range or ensure that usage records have been logged.</small></div>';
+        }
+
+        // Optimized Pie Chart
+        const pieCanvas = document.getElementById('usagePieChart');
+        const applianceNames = safeParse('{{ appliance_names_json|escapejs }}');
+        const applianceEnergies = safeParse('{{ appliance_energies_json|escapejs }}');
+        
+        if (pieCanvas && applianceNames && applianceNames.length > 0 && applianceEnergies && applianceEnergies.length > 0) {
+            const totalEnergy = applianceEnergies.reduce((sum, val) => sum + val, 0);
+            
+            const pieData = {
+                labels: applianceNames,
+                datasets: [{
+                    label: 'Appliance Energy Distribution (%)',
+                    data: applianceEnergies,
+                    backgroundColor: [
+                        'rgba(37, 99, 235, 0.9)',
+                        'rgba(22, 163, 74, 0.9)',
+                        'rgba(245, 158, 11, 0.9)',
+                        'rgba(239, 68, 68, 0.9)',
+                        'rgba(139, 92, 246, 0.9)',
+                        'rgba(6, 182, 212, 0.9)',
+                        'rgba(234, 179, 8, 0.9)',
+                        'rgba(236, 72, 153, 0.9)',
+                        'rgba(20, 184, 166, 0.9)',
+                        'rgba(249, 115, 22, 0.9)'
+                    ],
+                    borderColor: [
+                        '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff',
+                        '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff'
+                    ],
+                    borderWidth: 2,
+                    hoverBorderWidth: 4,
+                    hoverOffset: 8,
+                    borderRadius: 6,
+                    borderJoinStyle: 'round'
+                }]
+            };
+
+            new Chart(pieCanvas.getContext('2d'), {
+                type: 'pie',
+                data: pieData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeInOut'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            align: 'center',
+                            labels: {
+                                font: {
+                                    size: 11,
+                                    weight: '700',
+                                    family: 'Inter, sans-serif'
+                                },
+                                color: '#ffffff',
+                                padding: 15,
+                                usePointStyle: true,
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            const percentage = totalEnergy > 0 ? ((value / totalEnergy) * 100).toFixed(1) : '0.0';
+                                            return {
+                                                text: `${label}: ${value.toFixed(2)} kWh (${percentage}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                strokeStyle: data.datasets[0].borderColor,
+                                                lineWidth: data.datasets[0].borderWidth,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 2,
+                            cornerRadius: 8,
+                            padding: 12,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(ctx) {
+                                    const value = ctx.parsed;
+                                    const percentage = totalEnergy > 0 ? ((value / totalEnergy) * 100).toFixed(1) : '0.0';
+                                    return [
+                                        `Energy: ${value.toFixed(2)} kWh`,
+                                        `Percentage: ${percentage}%`
+                                    ];
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Appliance Energy Distribution',
+                            font: {
+                                size: 16,
+                                weight: '800',
+                                family: 'Inter, sans-serif'
+                            },
+                            color: '#ffffff',
+                            padding: {
+                                top: 12,
+                                bottom: 8
+                            }
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverBorderWidth: 4,
+                            hoverBorderColor: '#000000',
+                            borderRadius: 8,
+                            borderJoinStyle: 'round'
+                        }
+                    }
+                }
+            });
+        } else if (pieCanvas) {
+            pieCanvas.parentElement.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-chart-pie fa-2x mb-2"></i><br><strong>No appliance data available</strong><br><small>Appliance usage records are required to display distribution.</small></div>';
+        }
+
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        document.querySelectorAll('canvas').forEach(canvas => {
+            const parent = canvas.parentElement;
+            if (!parent.innerHTML.trim().includes('No data') && !parent.innerHTML.trim().includes('Error')) {
+                parent.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-chart-line fa-2x me-2 mb-2"></i><br><strong>Error loading charts</strong><br><small>Please check console for details.</small></div>';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+[
+    {
+        "model": "dashboard.usagerecord",
+        "pk": 1,
+        "fields": {
+            "date": "2023-01-01",
+            "hours_used": 5,
+            "appliance": 1
+        }
+    },
+    {
+        "model": "dashboard.usagerecord",
+        "pk": 2,
+        "fields": {
+            "date": "2023-01-02",
+            "hours_used": 3,
+            "appliance": 2
+        }
+    },
+    {
+        "model": "dashboard.usagerecord",
+        "pk": 3,
+        "fields": {
+            "date": "2023-01-03",
+            "hours_used": 4,
+            "appliance": 1
+        }
+    },
+    {
+        "model": "dashboard.usagerecord",
+        "pk": 4,
+        "fields": {
+            "date": "2023-01-04",
+            "hours_used": 2,
+            "appliance": 3
+        }
+    },
+    {
+        "model": "dashboard.usagerecord",
+        "pk": 5,
+        "fields": {
+            "date": "2023-01-05",
+            "hours_used": 6,
+            "appliance": 2
+        }
+    }
+]

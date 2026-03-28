@@ -1,0 +1,11 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+  <h2>Delete Usage Record</h2>
+  <p>Are you sure you want to delete the record for "{{ usage_record.appliance.name }}" on {{ usage_record.date }}?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+  </form>
+  <a href="{% url 'dashboard:usage_records' %}">Cancel</a>
+{% endblock %}

@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "name": "electricity-monitor-dashboard",
+  "builds": [
+    {
+      "src": "household_electricity_dashboard/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "household_electricity_dashboard/wsgi.py"
+    }
+  ],
+  "functions": {
+    "household_electricity_dashboard/wsgi.py": {
+      "maxDuration": 30
+    }
+  }
+}

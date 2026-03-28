@@ -1,0 +1,169 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Send SMS Alert - Household Electricity Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-between align-center mb-4">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-sms"></i> Send SMS Alert</h1>
+                    <p class="text-muted">Send a direct SMS alert to the configured phone number</p>
+                </div>
+                <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-mobile-alt"></i> SMS Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" 
+                                           value="{{ phone }}" readonly>
+                                    <div class="form-text">SMS will be sent to this Mauritius phone number</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" 
+                                              rows="4" placeholder="Enter your alert message">{{ default_message }}</textarea>
+                                    <div class="form-text">Maximum 160 characters for SMS</div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send SMS Alert
+                                    </button>
+                                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary">Cancel</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0"><i class="fas fa-info-circle"></i> SMS Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2"><strong>Twilio Account:</strong> {{ twilio_account_sid|truncatechars:10 }}...</p>
+                            <p class="mb-2"><strong>From Number:</strong> {{ twilio_from_number }}</p>
+                            <p class="mb-0"><strong>SMS Enabled:</strong> 
+                                {% if twilio_sms_enabled %}
+                                    <span class="text-success"><i class="fas fa-check"></i> Yes</span>
+                                {% else %}
+                                    <span class="text-danger"><i class="fas fa-times"></i> No</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for SMS
+document.getElementById('message').addEventListener('input', function() {
+    const maxLength = 160;
+    const currentLength = this.value.length;
+    const remaining = maxLength - currentLength;
+    
+    // Update form text
+    const formText = this.parentElement.querySelector('.form-text');
+    formText.textContent = `Maximum 160 characters (${remaining} remaining)`;
+    
+    // Change color if over limit
+    if (remaining < 0) {
+        formText.classList.add('text-danger');
+        this.classList.add('is-invalid');
+    } else {
+        formText.classList.remove('text-danger');
+        this.classList.remove('is-invalid');
+    }
+});
+</script>
+
+<style>
+.card {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-control {
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+</style>
+{% endblock %}

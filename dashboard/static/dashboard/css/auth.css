@@ -1,0 +1,532 @@
+/* Authentication Pages Styles */
+:root {
+    --auth-primary: #000000;
+    --auth-primary-dark: #000000;
+    --auth-primary-light: #000000;
+    --auth-secondary: #000000;
+    --auth-accent: #000000;
+    --auth-danger: #000000;
+    --auth-success: #000000;
+    --auth-gray-50: #ffffff;
+    --auth-gray-100: #ffffff;
+    --auth-gray-200: #ffffff;
+    --auth-gray-300: #ffffff;
+    --auth-gray-400: #ffffff;
+    --auth-gray-500: #ffffff;
+    --auth-gray-600: #ffffff;
+    --auth-gray-700: #ffffff;
+    --auth-gray-800: #ffffff;
+    --auth-gray-900: #ffffff;
+    --auth-white: #ffffff;
+    --auth-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --auth-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --auth-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --auth-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --auth-border-radius: 12px;
+    --auth-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-dark) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+/* Main Container */
+.auth-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 600px;
+    background: var(--auth-white);
+    border-radius: var(--auth-border-radius);
+    box-shadow: var(--auth-shadow-xl);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Left Panel - Branding */
+.auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-dark) 100%);
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-left::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+    50% { transform: translate(-50%, -50%) rotate(180deg); }
+}
+
+.brand-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: var(--auth-white);
+}
+
+.logo {
+    margin-bottom: 3rem;
+}
+
+.logo i {
+    font-size: 3rem;
+    color: var(--auth-accent);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.logo h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+}
+
+.logo h1 span {
+    color: var(--auth-accent);
+}
+
+.features {
+    margin-bottom: 3rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-item i {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    color: var(--auth-accent);
+}
+
+.feature-item span {
+    font-weight: 500;
+}
+
+.quote {
+    margin-top: 2rem;
+}
+
+.quote blockquote {
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Right Panel - Login Form */
+.auth-right {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--auth-gray-50);
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--auth-gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: var(--auth-gray-600);
+    font-size: 0.95rem;
+}
+
+/* Alerts */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.alert i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--auth-success);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--auth-danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Form Styles */
+.login-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    color: var(--auth-gray-700);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label i {
+    margin-right: 0.5rem;
+    color: var(--auth-primary);
+    width: 16px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem 0;
+    border: none;
+    border-bottom: 2px solid var(--auth-gray-300);
+    background: transparent;
+    font-size: 1rem;
+    color: var(--auth-gray-900);
+    transition: var(--auth-transition);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-bottom-color: var(--auth-primary);
+}
+
+.form-group input::placeholder {
+    color: var(--auth-gray-400);
+}
+
+.input-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--auth-primary);
+    transform: scaleX(0);
+    transition: var(--auth-transition);
+}
+
+.form-group.focused .input-line {
+    transform: scaleX(1);
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--auth-gray-600);
+}
+
+.checkbox-container input {
+    margin-right: 0.5rem;
+    width: auto;
+    accent-color: var(--auth-primary);
+}
+
+.forgot-password {
+    color: var(--auth-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--auth-transition);
+}
+
+.forgot-password:hover {
+    color: var(--auth-primary-dark);
+    text-decoration: underline;
+}
+
+/* Login Button */
+.btn-login {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-dark) 100%);
+    color: var(--auth-white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--auth-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--auth-shadow-md);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--auth-shadow-lg);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login i {
+    margin-right: 0.5rem;
+}
+
+/* Divider */
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--auth-gray-300);
+}
+
+.divider span {
+    background: var(--auth-white);
+    padding: 0 1rem;
+    color: var(--auth-gray-500);
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Register Link */
+.register-link {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.register-link p {
+    color: var(--auth-gray-600);
+    margin: 0;
+}
+
+.register-link a {
+    color: var(--auth-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--auth-transition);
+    display: inline-flex;
+    align-items: center;
+}
+
+.register-link a:hover {
+    color: var(--auth-primary-dark);
+    text-decoration: underline;
+}
+
+.register-link a i {
+    margin-right: 0.25rem;
+}
+
+/* Demo Account */
+.demo-account {
+    background: var(--auth-gray-100);
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid var(--auth-accent);
+}
+
+.demo-info {
+    font-size: 0.85rem;
+    color: var(--auth-gray-700);
+    line-height: 1.5;
+}
+
+.demo-info i {
+    color: var(--auth-accent);
+    margin-right: 0.5rem;
+}
+
+.demo-info code {
+    background: var(--auth-gray-200);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.8rem;
+}
+
+/* Background Animation */
+.background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float-shapes 20s infinite linear;
+}
+
+.shape-1 {
+    width: 80px;
+    height: 80px;
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 60px;
+    height: 60px;
+    top: 70%;
+    right: 10%;
+    animation-delay: 5s;
+}
+
+.shape-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 10s;
+}
+
+@keyframes float-shapes {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(0px) rotate(360deg);
+        opacity: 0.5;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        flex-direction: column;
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+    }
+
+    .auth-left {
+        padding: 2rem;
+        min-height: 300px;
+    }
+
+    .auth-right {
+        padding: 2rem;
+    }
+
+    .logo h1 {
+        font-size: 2rem;
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .feature-item {
+        margin-bottom: 0;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-left {
+        padding: 1.5rem;
+    }
+
+    .auth-right {
+        padding: 1.5rem;
+    }
+
+    .form-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+    }
+}

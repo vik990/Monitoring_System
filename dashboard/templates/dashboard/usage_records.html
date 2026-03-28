@@ -1,0 +1,308 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Usage Records{% endblock %}
+{% block content %}
+<div class="container usage-records-page">
+    <div class="d-flex justify-between align-center mb-4">
+        <h1><i class="fas fa-chart-line"></i> Usage Records</h1>
+        <div class="controls">
+            <a href="{% url 'dashboard:add_usage_record' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-between align-center">
+            <h3><i class="fas fa-list"></i> Your Usage Records</h3>
+            <div class="header-controls">
+                <form method="get" class="inline-form" style="display:flex;gap:0.5rem;align-items:center;">
+                    <input type="search" name="q" placeholder="Search by appliance or date" value="{{ q }}" class="input" />
+
+                    <select name="profile" class="input">
+                        <option value="">All profiles</option>
+                        {% for p in profiles %}
+                            <option value="{{ p.id }}" {% if selected_profile == p.id %}selected{% endif %}>{{ p.profile_name }}{% if p.is_default %} (Default){% endif %}</option>
+                        {% endfor %}
+                    </select>
+
+                    <input type="date" name="date_from" value="{{ date_from }}" class="input" />
+                    <input type="date" name="date_to" value="{{ date_to }}" class="input" />
+
+                    <select name="per_page" class="input">
+                        {% for n in options_per_page %}
+                            <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}/page</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{% url 'dashboard:usage_records' %}" class="btn btn-secondary">Reset</a>
+                </form>
+                <div style="margin-left:0.75rem;">
+                    <a href="{% url 'dashboard:export_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline">Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="measured-range">
+                {% if measured_start and measured_end %}
+                    Measured period: <strong>{{ measured_start }}</strong> to <strong>{{ measured_end }}</strong>
+                {% else %}
+                    Measured period: <strong>No data yet</strong>
+                {% endif %}
+            </div>
+            {% if usage_records %}
+                <div class="table-container usage-table-wrapper" style="margin: 0.5rem 0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar"></i> Date</th>
+                                <th><i class="fas fa-plug"></i> Appliance</th>
+                                <th><i class="fas fa-clock"></i> Hours Used</th>
+                                <th><i class="fas fa-bolt"></i> Energy (kWh)</th>
+                                <th><i class="fas fa-wallet"></i> Est. Cost</th>
+                                <th><i class="fas fa-cogs"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in usage_records %}
+                            <tr data-date="{{ record.date }}" 
+                                data-appliance="{{ record.appliance.name }}" 
+                                data-hours="{{ record.hours_used }}" 
+                                data-energy="{{ record.energy_kwh|floatformat:2 }}" 
+                                data-cost="{{ record.estimated_cost|floatformat:2 }}">
+                                
+                                <td>{{ record.date }}</td>
+                                <td>{{ record.appliance.name }}</td>
+                                <td>{{ record.hours_used }}</td>
+                                <td>{{ record.energy_kwh|floatformat:2 }}</td>
+                                <td>{{ record.estimated_cost|floatformat:2 }}</td>
+                                <td>
+                                    <div class="action-dropdown">
+                                        <button type="button" class="btn btn-sm btn-outline action-toggle">
+                                            <i class="fas fa-ellipsis-v"></i> Actions
+                                        </button>
+                                        <div class="action-menu">
+                                            <a href="{% url 'dashboard:edit_usage_record' record.pk %}" class="action-menu-item">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <button class="action-menu-item view-btn" type="button">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <a href="{% url 'dashboard:delete_usage_record' record.pk %}" class="action-menu-item danger" onclick="return confirm('Are you sure you want to delete this record?');">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-controls">
+                    <div class="pagination-info">Showing page {{ page_obj.number }} of {{ paginator.num_pages }} ({{ total_records }} records)</div>
+                    <div class="pagination-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&{{ qs_without_page }}" class="btn btn-outline">&larr; Prev</a>
+                        {% else %}
+                            <span class="btn btn-disabled">&larr; Prev</span>
+                        {% endif %}
+
+                        <span class="page-numbers">Page {{ page_obj.number }} / {{ paginator.num_pages }}</span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&{{ qs_without_page }}" class="btn btn-outline">Next &rarr;</a>
+                        {% else %}
+                            <span class="btn btn-disabled">Next &rarr;</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% else %}
+                <p class="text-center">No usage records yet. <a href="{% url 'dashboard:add_usage_record' %}">Add your first record</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="usageDetailModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <button class="modal-close">&times;</button>
+        <h3>Usage Record</h3>
+        <p><strong>Date:</strong> <span id="modal-date"></span></p>
+        <p><strong>Appliance:</strong> <span id="modal-appliance"></span></p>
+        <p><strong>Hours Used:</strong> <span id="modal-hours"></span></p>
+        <p><strong>Energy (kWh):</strong> <span id="modal-energy"></span></p>
+        <p><strong>Estimated Cost (MUR):</strong> <span id="modal-cost"></span></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const modal = document.getElementById('usageDetailModal');
+        const modalDate = document.getElementById('modal-date');
+        const modalAppliance = document.getElementById('modal-appliance');
+        const modalHours = document.getElementById('modal-hours');
+        const modalEnergy = document.getElementById('modal-energy');
+        const modalCost = document.getElementById('modal-cost');
+        const closeBtn = modal.querySelector('.modal-close');
+
+        // Row action dropdown behavior
+        document.querySelectorAll('.action-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e){
+                e.stopPropagation();
+                const wrapper = this.closest('.action-dropdown');
+                document.querySelectorAll('.action-dropdown.open').forEach(openOne => {
+                    if (openOne !== wrapper) openOne.classList.remove('open');
+                });
+                wrapper.classList.toggle('open');
+            });
+        });
+
+        document.addEventListener('click', function(){
+            document.querySelectorAll('.action-dropdown.open').forEach(openOne => openOne.classList.remove('open'));
+        });
+
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function(){
+                const tr = this.closest('tr');
+                modalDate.textContent = tr.getAttribute('data-date');
+                modalAppliance.textContent = tr.getAttribute('data-appliance');
+                modalHours.textContent = tr.getAttribute('data-hours');
+                modalEnergy.textContent = tr.getAttribute('data-energy');
+                modalCost.textContent = tr.getAttribute('data-cost');
+                modal.style.display = 'block';
+            });
+        });
+
+        closeBtn.addEventListener('click', function(){
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(e){
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    });
+</script>
+
+<style>
+/* Make usage records truly full-width and easy to read */
+.usage-records-page {
+    max-width: 100% !important;
+    width: 100%;
+    padding: 0.5rem 0.25rem;
+}
+
+.usage-records-page .card {
+    width: 100% !important;
+    max-width: none !important;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+}
+
+.usage-records-page .card-header,
+.usage-records-page .card-body {
+    padding: 1rem 1.1rem;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.usage-records-page .header-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.usage-records-page .inline-form {
+    flex-wrap: wrap;
+}
+
+.usage-records-page .table-container {
+    width: 100%;
+    overflow: auto;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+}
+
+.usage-records-page .usage-table-wrapper {
+    max-height: none;
+}
+
+.usage-records-page .measured-range {
+    margin-bottom: 0.65rem;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.usage-records-page table {
+    min-width: 1100px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.usage-records-page table th,
+.usage-records-page table td {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.usage-records-page table th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.usage-records-page table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+/* Clean actions dropdown */
+.action-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.action-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 150px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 20;
+    display: none;
+    overflow: hidden;
+}
+
+.action-dropdown.open .action-menu {
+    display: block;
+}
+
+.action-menu-item {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.action-menu-item:hover {
+    background: var(--bg-secondary);
+}
+
+.action-menu-item.danger {
+    color: var(--danger-color);
+}
+</style>
+{% endblock %}

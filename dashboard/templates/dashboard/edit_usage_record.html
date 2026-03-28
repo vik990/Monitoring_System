@@ -1,0 +1,44 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block title %}Edit Usage Record{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card" style="width: 100%; background: var(--bg-primary); border: 2px solid var(--border-color);">
+        <div class="card-header" style="background: var(--bg-secondary); border-color: var(--border-color);">
+            <h2><i class="fas fa-edit"></i> Edit Usage Record</h2>
+        </div>
+        <div class="card-body" style="padding: 2rem; background: var(--bg-primary); border-color: var(--border-color);">
+            <form method="post" data-validate="true">
+                {% csrf_token %}
+                <p class="text-muted">Update the usage record. You may select a different appliance or enter a new appliance name to auto-create it and associate with your default profile.</p>
+
+                {% for field in form %}
+                <div class="form-group mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{% url 'dashboard:usage_records' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

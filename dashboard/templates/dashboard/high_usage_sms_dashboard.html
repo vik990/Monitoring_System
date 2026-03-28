@@ -1,0 +1,259 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}High Usage SMS Alerts - Electricity Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-2">
+                        <i class="fas fa-sms text-primary"></i> High Usage SMS Alerts
+                    </h1>
+                    <p class="text-muted">
+                        {% if cutoff_date %}High usage in last 24h (since {{ cutoff_date }}){% endif %}
+                        • Only profiles with exceeding appliances shown
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard:resident_profiles' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-users"></i> All Profiles
+                    </a>
+                    <a href="{% url 'dashboard:send_sms_alert' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-mobile-alt"></i> Quick SMS
+                    </a>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if twilio_configured %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> 
+                    Twilio <strong>Configured</strong> ✅ Ready to send SMS
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Twilio <strong>{{ twilio_status }}</strong> 
+                    <a href="{% url 'dashboard:send_sms_alert' %}" class="alert-link">Configure</a> in <code>.env</code>
+                </div>
+            {% endif %}
+
+            {% if no_high_usage %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+                    <h3 class="text-success">All Clear! 🎉</h3>
+                    <p class="lead text-muted">No high usage detected across all profiles.</p>
+                    <p class="text-muted">
+                        All appliances within daily thresholds. Usage is normal.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'dashboard:charts' %}" class="btn btn-success">
+                            <i class="fas fa-chart-line"></i> View Charts
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="row g-4">
+                    {% for profile in profile_data %}
+                        <div class="col-lg-6 col-xl-4">
+                            <div class="card h-100 shadow-sm border-{% if profile.phone %}success{% else %}warning{% endif %}">
+                                <div class="card-header bg-gradient-primary text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-user-circle me-2"></i>
+                                            {{ profile.resident.profile_name }}
+                                            {% if profile.resident.is_default %}
+                                                <span class="badge bg-light text-primary">Default</span>
+                                            {% endif %}
+                                        </h5>
+                                        <span class="badge bg-danger">
+                                            {{ profile.total_high_appliances }} High
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <!-- Phone Status -->
+                                    {% if profile.phone %}
+                                        <div class="alert alert-success alert-sm mb-3">
+                                            <i class="fas fa-phone me-1"></i>
+                                            SMS Ready: {{ profile.phone }}
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-warning alert-sm mb-3">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            No phone - Add in <a href="{% url 'dashboard:edit_resident_profile' profile.resident.id %}">profile settings</a>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- High Usage Appliances Table -->
+                                    <h6 class="card-subtitle mb-3 text-muted">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        High Usage Appliances
+                                    </h6>
+                                    <div class="table-responsive table-sm">
+                                        <table class="table table-danger table-sm mb-0">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Appliance</th>
+                                                    <th>Hours</th>
+                                                    <th>kWh</th>
+                                                    <th>Threshold</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in profile.high_usage %}
+                                                    <tr>
+                                                        <td><strong>{{ item.appliance.name }}</strong></td>
+                                                        <td>
+                                                            <span class="badge bg-danger">{{ item.hours }}h</span>
+                                                        </td>
+                                                        <td>{{ item.energy_kwh }} kWh</td>
+                                                        <td>{{ item.threshold }}h</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- SMS Action Footer -->
+                                <div class="card-footer bg-light border-top">
+                                    {% if profile.phone %}
+                                        <form method="post" action="{% url 'dashboard:send_sms_alert' %}?profile_id={{ profile.resident.id }}" 
+                                              class="send-sms-form d-inline" data-profile="{{ profile.resident.id }}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="profile_id" value="{{ profile.resident.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm w-100 send-sms-btn">
+                                                <i class="fas fa-paper-plane me-1"></i>
+                                                Send SMS Alert Now
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'dashboard:edit_resident_profile' profile.resident.id %}" 
+                                           class="btn btn-outline-warning btn-sm w-100">
+                                            <i class="fas fa-edit me-1"></i>
+                                            Add Phone Number
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Twilio Test Button -->
+                <div class="card mt-5">
+                    <div class="card-body text-center">
+                        <h5>Test SMS Configuration</h5>
+                        <p class="text-muted mb-3">Send test SMS to verify Twilio works</p>
+                        <a href="{% url 'dashboard:send_sms_alert' %}" class="btn btn-primary">
+                            <i class="fas fa-mobile-alt me-2"></i> Quick Test SMS
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+}
+
+.table-danger tbody tr {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.table-danger tbody tr:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.send-sms-btn {
+    transition: all 0.2s ease;
+}
+
+.send-sms-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+}
+</style>
+
+<script>
+// AJAX SMS handler (Step 7)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.send-sms-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = this.querySelector('.send-sms-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+            btn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    btn.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Sent!';
+                    btn.classList.add('btn-success');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('btn-success');
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Error';
+                    btn.classList.add('btn-danger');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('btn-danger');
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(() => {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Error';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

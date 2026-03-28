@@ -1,0 +1,12 @@
+asgiref==3.11.0
+celery==5.4.0
+Django==4.2
+django-crispy-forms==1.14.0
+django-extensions==3.2.1
+pandas==2.3.3
+pymysql==1.1.1
+reportlab==4.4.7
+requests==2.32.3
+sqlparse==0.5.5
+twilio==9.3.6
+tzdata==2025.3

@@ -1,0 +1,179 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Resident Details - Household Electricity Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-circle"></i> Resident Details: {{ resident.full_name }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'dashboard:resident_profiles' %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to Profiles
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Personal Information</h4>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Full Name</th>
+                                    <td>{{ resident.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>
+                                        {{ resident.email }}
+                                        {% if resident.email_password %}
+                                            <span class="badge bg-success ms-2">
+                                                <i class="fas fa-check"></i> Alerts Enabled
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning ms-2">
+                                                <i class="fas fa-exclamation-triangle"></i> Password Needed
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Phone</th>
+                                    <td>{{ resident.phone|default:"Not provided" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Household Size</th>
+                                    <td>{{ resident.household_size }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Address</th>
+                                    <td>{{ resident.address|default:"Not provided"|linebreaks }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Member Since</th>
+                                    <td>{{ resident.created_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        {% if resident.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h4>Electricity Usage Summary</h4>
+                            {% if monthly_usage %}
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5>{{ monthly_usage.month_name }} {{ monthly_usage.year }}</h5>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h6>Total Energy</h6>
+                                            <h3>{{ monthly_usage.total_energy }} kWh</h3>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6>Estimated Cost</h6>
+                                            <h3>MUR {{ monthly_usage.total_cost }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if monthly_usage.appliance_breakdown %}
+                            <div class="mt-3">
+                                <h5>Appliance Usage Breakdown</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Appliance</th>
+                                                <th>Energy (kWh)</th>
+                                                <th>Cost (MUR)</th>
+                                                <th>Hours Used</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for appliance, data in monthly_usage.appliance_breakdown.items %}
+                                            <tr>
+                                                <td>{{ appliance }}</td>
+                                                <td>{{ data.energy|floatformat:2 }}</td>
+                                                <td>{{ data.cost|floatformat:2 }}</td>
+                                                <td>{{ data.hours|floatformat:1 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No usage records found for this month.
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Unable to calculate monthly usage.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>Appliances Owned</h4>
+                            {% with appliances=resident.user.appliance_set.all %}
+                            {% if appliances %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Power Rating (W)</th>
+                                            <th>Threshold Hours</th>
+                                            <th>Critical</th>
+                                            <th>Priority</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for appliance in appliances %}
+                                        <tr>
+                                            <td>{{ appliance.name }}</td>
+                                            <td>{{ appliance.power_rating }}</td>
+                                            <td>{{ appliance.threshold_hours }}</td>
+                                            <td>
+                                                {% if appliance.is_critical %}
+                                                    <span class="badge bg-danger">Critical</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Normal</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ appliance.get_priority_level_display }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No appliances registered for this resident.
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Appliance Detection - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-microchip"></i>
+                        Smart Plug Appliance Detection
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Current Detection</h5>
+                            {% if appliance_info.current_detection %}
+                            <div class="alert alert-info">
+                                <h6>
+                                    {{ appliance_info.current_detection.icon }} 
+                                    {{ appliance_info.current_detection.description }}
+                                </h6>
+                                <p class="mb-1"><strong>Category:</strong> {{ appliance_info.current_detection.category }}</p>
+                                <p class="mb-1"><strong>Confidence:</strong> 
+                                    <span class="badge badge-{{ appliance_info.current_detection.confidence|lower == 'high' and 'success' or appliance_info.current_detection.confidence|lower == 'medium' and 'warning' or 'danger' }}">
+                                        {{ appliance_info.current_detection.confidence }}
+                                    </span>
+                                </p>
+                                <p class="mb-1"><strong>Power Consumption:</strong> {{ appliance_info.current_detection.power_w|floatformat:2 }}W</p>
+                                <p class="mb-1"><strong>Duty Cycle:</strong> {{ appliance_info.current_detection.duty_cycle }}</p>
+                                <p class="mb-0"><strong>Match Score:</strong> {{ appliance_info.current_detection.match_score }}%</p>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No current detection available.</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Live Metrics</h5>
+                            {% if appliance_info.current_detection.power_w %}
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body">
+                                            <h5>{{ appliance_info.current_detection.power_w|floatformat:1 }}W</h5>
+                                            <small>Power</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body">
+                                            <h5>{{ appliance_info.current_detection.current_a|floatformat:2 }}A</h5>
+                                            <small>Current</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-warning text-white">
+                                        <div class="card-body">
+                                            <h5>{{ appliance_info.current_detection.voltage_v|floatformat:1 }}V</h5>
+                                            <small>Voltage</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No live data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h5>Usage History (Last 7 Days)</h5>
+                            {% if appliance_info.usage_history %}
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6>{{ appliance_info.usage_history.total_energy }} kWh</h6>
+                                            <small>Total Energy</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6>{{ appliance_info.usage_history.avg_daily_energy }} kWh</h6>
+                                            <small>Avg Daily</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6>{{ appliance_info.usage_history.active_days }}/{{ appliance_info.usage_history.total_days }}</h6>
+                                            <small>Active Days</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6>{{ appliance_info.usage_history.detection_confidence }}</h6>
+                                            <small>Detection Confidence</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No usage history available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools"></i>
+                        Manual Identification
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">If automatic detection is incorrect, you can manually identify the appliance:</p>
+                    
+                    <form id="identify-form">
+                        <div class="form-group">
+                            <label for="appliance_type">Select Appliance Type</label>
+                            <select class="form-control" id="appliance_type" name="appliance_type" required>
+                                <option value="">-- Select Appliance --</option>
+                                {% for appliance in available_types %}
+                                <option value="{{ appliance.type }}" data-description="{{ appliance.description }}" data-icon="{{ appliance.icon }}">
+                                    {{ appliance.icon }} {{ appliance.description }} ({{ appliance.power_range }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="custom_name">Custom Name (Optional)</label>
+                            <input type="text" class="form-control" id="custom_name" name="custom_name" placeholder="e.g., My Refrigerator">
+                            <small class="form-text text-muted">Leave blank to use default name</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-fingerprint"></i> Identify Appliance
+                        </button>
+                    </form>
+                    
+                    <div id="result-message" class="mt-3"></div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb"></i>
+                        Recommendations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appliance_info.recommendations %}
+                    {% for recommendation in appliance_info.recommendations %}
+                    <div class="alert alert-{{ recommendation.priority|lower == 'high' and 'danger' or recommendation.priority|lower == 'medium' and 'warning' or 'info' }} alert-dismissible fade show" role="alert">
+                        <strong>{{ recommendation.type|title }}:</strong> {{ recommendation.message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No recommendations available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i>
+                        Detection Patterns
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Power Consumption Analysis</h6>
+                            <canvas id="powerChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Usage Patterns</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-clock"></i> Peak Usage Hours</span>
+                                    <span class="badge badge-primary badge-pill">
+                                        {% if appliance_info.usage_history.usage_patterns.peak_usage_times %}
+                                        {{ appliance_info.usage_history.usage_patterns.peak_usage_times|join:", " }}
+                                        {% else %}
+                                        Not available
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-calendar"></i> Usage Frequency</span>
+                                    <span class="badge badge-info badge-pill">
+                                        {{ appliance_info.usage_history.usage_patterns.usage_frequency }}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-chart-bar"></i> Data Points</span>
+                                    <span class="badge badge-success badge-pill">
+                                        {{ appliance_info.usage_history.total_days }} days
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle manual identification form
+    document.getElementById('identify-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const resultMessage = document.getElementById('result-message');
+        
+        fetch('{% url "dashboard:identify_appliance" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultMessage.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>Success!</strong> Appliance identified as: ${data.appliance.description}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                `;
+                // Refresh the page to show updated information
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                resultMessage.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error:</strong> ${data.error || 'Failed to identify appliance'}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            resultMessage.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <strong>Error:</strong> ${error.message}
+                </div>
+            `;
+        });
+    });
+    
+    // Update appliance info periodically
+    setInterval(function() {
+        fetch('{% url "dashboard:appliance_info" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the UI with new data (you would need to implement this)
+                console.log('Appliance info updated');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating appliance info:', error);
+        });
+    }, 30000); // Update every 30 seconds
+});
+</script>
+{% endblock %}

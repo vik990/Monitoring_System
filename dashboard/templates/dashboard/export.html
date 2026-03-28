@@ -1,0 +1,232 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Export Data{% endblock %}
+{% block page_title %}Export Data{% endblock %}
+
+{% block content %}
+<div class="export-container">
+    <div class="export-header">
+        <h2>Export Electricity Usage Data</h2>
+        <p>Download your household electricity usage records in CSV or PDF format.</p>
+    </div>
+
+    <div class="export-options">
+        <div class="export-card">
+            <div class="export-icon">
+                <i class="fas fa-file-csv"></i>
+            </div>
+            <div class="export-info">
+                <h3>CSV Format</h3>
+                <p>Spreadsheet-compatible format for data analysis in Excel, Google Sheets, or other tools.</p>
+                <ul class="export-features">
+                    <li>Includes all usage records</li>
+                    <li>Calculated energy consumption and costs</li>
+                    <li>Compatible with most spreadsheet applications</li>
+                </ul>
+            </div>
+            <form method="get" action="{% url 'dashboard:export_csv' %}" class="export-form">
+                <button type="submit" class="export-btn export-btn-csv">
+                    <i class="fas fa-download"></i>
+                    Download CSV
+                </button>
+            </form>
+        </div>
+
+        <div class="export-card">
+            <div class="export-icon">
+                <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="export-info">
+                <h3>PDF Report</h3>
+                <p>Professional formatted report with summary statistics and detailed usage breakdown.</p>
+                <ul class="export-features">
+                    <li>Formatted report with summary</li>
+                    <li>Total energy consumption and costs</li>
+                    <li>Professional layout for sharing</li>
+                </ul>
+            </div>
+            <form method="get" action="{% url 'dashboard:export_pdf' %}" class="export-form">
+                <button type="submit" class="export-btn export-btn-pdf">
+                    <i class="fas fa-download"></i>
+                    Download PDF
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="export-info-note">
+        <i class="fas fa-info-circle"></i>
+        <p><strong>Note:</strong> Export includes all usage records from your household electricity monitoring system. Files will be downloaded automatically to your default downloads folder.</p>
+    </div>
+</div>
+
+<style>
+.export-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.export-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.export-header h2 {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.export-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.export-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.export-card {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.export-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.export-icon {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.export-icon i {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.export-info h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.export-info p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.export-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.export-features li {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.export-features li:before {
+    content: "✓";
+    color: var(--success-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.export-form {
+    text-align: center;
+}
+
+.export-btn {
+    background: var(--primary-color);
+    color: #000000;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.export-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.export-btn:active {
+    transform: translateY(0);
+}
+
+.export-btn-csv {
+    background: var(--success-color);
+}
+
+.export-btn-csv:hover {
+    background: var(--success-dark, #059669);
+}
+
+.export-btn-pdf {
+    background: var(--danger-color);
+}
+
+.export-btn-pdf:hover {
+    background: var(--danger-dark, #dc2626);
+}
+
+.export-info-note {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.export-info-note i {
+    color: var(--info-color);
+    font-size: 1.25rem;
+    margin-top: 0.125rem;
+}
+
+.export-info-note p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .export-options {
+        grid-template-columns: 1fr;
+    }
+
+    .export-card {
+        padding: 1.5rem;
+    }
+
+    .export-header h2 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

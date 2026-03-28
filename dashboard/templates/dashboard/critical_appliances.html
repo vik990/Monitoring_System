@@ -1,0 +1,135 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Critical Appliances & Digital Meters{% endblock %}
+{% block content %}
+<div class="container">
+    <h2><i class="fas fa-exclamation-triangle"></i> Critical Appliances & Digital Meter Monitoring</h2>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Digital Meter Monitoring:</strong> Critical appliances require digital meters for accurate real-time monitoring and energy optimization.
+    </div>
+
+    <!-- Current Critical Appliances -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3><i class="fas fa-shield-alt"></i> Critical Appliances (Require Digital Meters)</h3>
+        </div>
+        <div class="card-body">
+            {% if critical_appliances %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Appliance</th>
+                                <th>Power Rating</th>
+                                <th>Daily Threshold</th>
+                                <th>Priority</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appliance in critical_appliances %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-plug text-warning"></i>
+                                    {{ appliance.name }}
+                                </td>
+                                <td>{{ appliance.power_rating }}W</td>
+                                <td>{{ appliance.threshold_hours }}h</td>
+                                <td>
+                                    <span class="badge bg-{% if appliance.priority_level == 3 %}danger{% elif appliance.priority_level == 2 %}warning{% else %}secondary{% endif %}">
+                                        {{ appliance.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'dashboard:update_priority' appliance.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <select name="priority_level" class="form-select form-select-sm d-inline" style="width: auto;" onchange="this.form.submit()">
+                                            <option value="1" {% if appliance.priority_level == 1 %}selected{% endif %}>Low</option>
+                                            <option value="2" {% if appliance.priority_level == 2 %}selected{% endif %}>Medium</option>
+                                            <option value="3" {% if appliance.priority_level == 3 %}selected{% endif %}>High</option>
+                                        </select>
+                                    </form>
+                                    <a href="{% url 'dashboard:unmark_critical' appliance.pk %}" class="btn btn-sm btn-outline-danger ms-2">
+                                        <i class="fas fa-times"></i> Remove
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No critical appliances identified yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Suggested Critical Appliances -->
+    {% if suggestions %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h3><i class="fas fa-lightbulb"></i> Suggested for Digital Meter Monitoring</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Based on usage patterns, these appliances should be monitored with digital meters:</p>
+            <div class="row">
+                {% for appliance in suggestions %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-plug text-warning"></i>
+                                {{ appliance.name }}
+                            </h5>
+                            <p class="card-text">
+                                <strong>Power:</strong> {{ appliance.power_rating }}W<br>
+                                <strong>Threshold:</strong> {{ appliance.threshold_hours }}h/day<br>
+                                <small class="text-muted">High usage detected - digital monitoring recommended</small>
+                            </p>
+                            <a href="{% url 'dashboard:mark_critical' appliance.pk %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-plus"></i> Add to Critical List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Digital Meter Installation Guide -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-tools"></i> Digital Meter Installation Guide</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Why Digital Meters?</h5>
+                    <ul>
+                        <li><i class="fas fa-check" style="color: var(--success-color);"></i> Real-time energy monitoring</li>
+                        <li><i class="fas fa-check" style="color: var(--success-color);"></i> Accurate consumption data</li>
+                        <li><i class="fas fa-check" style="color: var(--success-color);"></i> Automated alerts and notifications</li>
+                        <li><i class="fas fa-check" style="color: var(--success-color);"></i> Better energy optimization</li>
+                        <li><i class="fas fa-check" style="color: var(--success-color);"></i> Cost savings through efficiency</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Installation Steps</h5>
+                    <ol>
+                        <li>Identify critical appliances (listed above)</li>
+                        <li>Purchase compatible digital meters</li>
+                        <li>Install meters between appliance and power source</li>
+                        <li>Connect meters to monitoring system</li>
+                        <li>Configure alerts and thresholds</li>
+                        <li>Test and verify readings</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

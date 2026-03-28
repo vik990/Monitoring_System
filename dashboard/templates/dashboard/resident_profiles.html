@@ -1,0 +1,175 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Resident Profiles - Household Electricity Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-between align-center mb-4">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-users"></i> Resident Profiles</h1>
+                    <p class="text-muted">Manage multiple household profiles for different locations or family members</p>
+                </div>
+                <a href="{% url 'dashboard:add_resident_profile' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Profile
+                </a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if profiles %}
+                <div class="row">
+                    {% for profile in profiles %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card profile-card {% if profile.is_default %}border-primary{% endif %}">
+                                <div class="card-header d-flex justify-between align-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-user-circle"></i> {{ profile.profile_name }}
+                                        {% if profile.is_default %}
+                                            <span class="badge bg-primary ms-2">Default</span>
+                                        {% endif %}
+                                    </h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'dashboard:edit_resident_profile' profile.id %}">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a></li>
+                                            {% if not profile.is_default %}
+                                                <li><a class="dropdown-item" href="{% url 'dashboard:set_default_profile' profile.id %}">
+                                                    <i class="fas fa-star"></i> Set as Default
+                                                </a></li>
+                                            {% endif %}
+                                            {% if total_profiles > 1 %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form method="post" action="{% url 'dashboard:delete_resident_profile' profile.id %}" style="margin:0;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to delete this profile?')">
+                                                            <i class="fas fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="profile-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-user"></i>
+                                            <span>{{ profile.full_name }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <span>{{ profile.email }}
+                                                {% if profile.email_password %}
+                                                    <small class="text-success ms-1">
+                                                        <i class="fas fa-check-circle"></i> Alerts enabled
+                                                    </small>
+                                                {% else %}
+                                                    <small class="text-warning ms-1">
+                                                        <i class="fas fa-exclamation-triangle"></i> Password needed
+                                                    </small>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        {% if profile.phone %}
+                                            <div class="info-item">
+                                                <i class="fas fa-phone"></i>
+                                                <span>{{ profile.phone }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="info-item">
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ profile.household_size }} member{{ profile.household_size|pluralize }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>Created {{ profile.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{% url 'dashboard:resident_details' profile.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                    <button class="btn btn-outline-info btn-sm ms-2" onclick="sendManualAlert('{{ profile.id }}')">
+                                        <i class="fas fa-bell"></i> Send Alert
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h3>No Profiles Yet</h3>
+                    <p class="text-muted">Create your first resident profile to get started with personalized monitoring.</p>
+                    <a href="{% url 'dashboard:add_resident_profile' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create First Profile
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.profile-card.border-primary {
+    border-color: var(--primary-color) !important;
+    border-width: 2px;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.info-item i {
+    color: var(--text-secondary);
+    width: 16px;
+}
+
+.card-footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+</style>
+
+{% block extra_js %}
+<script src="{% static 'dashboard/js/resident_profiles.js' %}"></script>
+{% endblock %}
+{% endblock %}

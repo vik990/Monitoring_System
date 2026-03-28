@@ -1,0 +1,34 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Alerts{% endblock %}
+{% block content %}
+<div class="container">
+    <h2><i class="fas fa-bell"></i> Energy Alerts</h2>
+
+    {% if alerts %}
+        <div class="alerts-list">
+            {% for alert in alerts %}
+                <div class="alert-item {% if not alert.is_read %}unread{% endif %}">
+                    <div class="alert-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <p>{{ alert.message }}</p>
+                            <small>{{ alert.date_created|date:"M d, Y H:i" }}</small>
+                        </div>
+                    </div>
+                    {% if not alert.is_read %}
+                        <a href="{% url 'dashboard:mark_alert_read' alert.id %}" class="btn btn-sm btn-outline">
+                            <i class="fas fa-check"></i> Mark as Read
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-alerts">
+            <i class="fas fa-check-circle"></i>
+            <p>No alerts at this time. Your energy usage is within normal limits.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

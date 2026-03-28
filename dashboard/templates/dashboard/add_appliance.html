@@ -1,0 +1,48 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Add Appliance{% endblock %}
+{% block content %}
+<div class="container">
+    <h2><i class="fas fa-plug"></i> Add New Appliance</h2>
+
+    <form method="post" class="form" data-validate="true">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}"><i class="fas fa-tag"></i> Appliance Name:</label>
+            {{ form.name }}
+            {{ form.name.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.power_rating.id_for_label }}"><i class="fas fa-bolt"></i> Power Rating (Watts):</label>
+            {{ form.power_rating }}
+            {{ form.power_rating.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.threshold_hours.id_for_label }}"><i class="fas fa-clock"></i> Daily Usage Threshold (Hours):</label>
+            {{ form.threshold_hours }}
+            {{ form.threshold_hours.errors }}
+            <small class="form-help">Set the maximum hours this appliance should be used per day to receive alerts.</small>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.is_critical.id_for_label }}"><i class="fas fa-exclamation-triangle"></i> Critical Appliance:</label>
+            {{ form.is_critical }}
+            {{ form.is_critical.errors }}
+            <small class="form-help">Mark as critical if this appliance requires digital meter monitoring.</small>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.priority_level.id_for_label }}"><i class="fas fa-star"></i> Monitoring Priority:</label>
+            {{ form.priority_level }}
+            {{ form.priority_level.errors }}
+            <small class="form-help">Set monitoring priority for critical appliances.</small>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Add Appliance
+        </button>
+    </form>
+
+    <a href="{% url 'dashboard:appliances' %}" class="btn btn-outline-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Appliances
+    </a>
+</div>
+{% endblock %}
